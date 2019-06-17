@@ -1,0 +1,27 @@
+query EvidencesByCase {
+  description: "Select all evidences of one single case"
+  statement:
+    SELECT uma.coc.network.Evidence
+    WHERE (caso == _$case_fqi)
+}
+
+query EvidencesByParticipant {
+  description: "Select all evidences of one participant"
+  statement:
+    SELECT uma.coc.network.Evidence
+    WHERE (owner == _$owner_fqi)
+}
+
+query CasesByParticipant {
+  description: "Select all cases in which a participant is involved"
+  statement:
+    SELECT uma.coc.network.Case
+    WHERE (participants CONTAINS _$participant_fqi)
+}
+
+query GetDepositByOffice {
+  description: "Get a deposit by office"
+  statement:
+    SELECT uma.coc.network.Deposit
+    WHERE (office == _$office)
+}

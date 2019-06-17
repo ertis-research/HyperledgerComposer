@@ -1,0 +1,76 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//This rule is needed for all Participants
+rule MandatoryRule {
+    description: "All participants can READ system registries"
+    participant: "ANY"
+    operation: READ
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
+
+//Staff members must have access to HistorianRecord in order to execute txs
+rule StaffMandatoryRule {
+    description: "Give staff members WRITE access to HistorianRecord"
+    participant: "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "org.hyperledger.composer.system.HistorianRecord"
+    action: ALLOW
+}
+
+rule AcquisitorTransactionRule {
+    description: "Allow acquisitors to add a new acquisition"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.AddAcquisition"
+    condition: (p.role === 'ACQUISITOR')
+    action: ALLOW
+}
+
+rule AnalystTransactionRule {
+    description: "Allow analysts and advanced analysts to add a new a analysis full"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.AddAnalysis"
+    condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+    action: ALLOW
+}
+
+//Should and acquisitor READ analysis?
+rule EverybodyCanReadEverythingRule {
+    description: "Allow all participants read access to all resources"
+    participant: "ertis.uma.nuclear.Staff"
+    operation: READ
+    resource: "ertis.uma.nuclear.*" //Only resources maybe
+    action: ALLOW
+}
+
+
+//Network Admins Rules
+rule NetworkAdminUser {
+    description: "Grant business network administrators full access to user resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "**"
+    action: ALLOW
+}
+
+rule NetworkAdminSystem {
+    description: "Grant business network administrators full access to system resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}

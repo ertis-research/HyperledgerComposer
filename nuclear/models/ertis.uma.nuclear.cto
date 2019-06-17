@@ -1,0 +1,152 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace ertis.uma.nuclear
+
+// PARTICIPANTS
+participant Staff identified by participantId {
+  o String participantId
+  o String passport
+  o String name
+  o String nationality
+  o Role role
+}
+
+
+//ASSETS
+asset Tube identified by tubeId {
+  o String tubeId
+  o Double posX
+  o Double posY
+  o Double length
+}
+
+asset Work identified by workId {
+  o String workId
+  o DateTime workDate
+  o State state //Initially PLANNED, when a 1st cal. is created --> WORK_IN_PROGRESS
+  o String description optional
+}
+
+asset Calibration identified by calId {
+  o String calId
+  o DateTime calDate
+  o String equipment optional
+  --> Staff primaryAnalyst optional
+  o State primaryState
+  --> Staff secondaryAnalyst optional
+  o State secondaryState
+  --> Staff advancedAnalyst optional
+  o State resolutionState
+  --> Work work
+}
+
+asset Acquisition identified by acqId {
+  o String acqId
+  o DateTime acqDate
+  o String filename
+  --> Tube tube
+  --> Staff acquisitor
+  --> Calibration calibration
+}
+
+asset Analysis identified by analysisId {
+  o String analysisId
+  o DateTime analysisDate
+  o Method method optional
+  o String[] indications optional
+  --> Acquisition acquisition
+  --> Staff analyst
+}
+
+
+//ENUMERATED TYPES
+enum Role {
+  o ACQUISITOR
+  o ANALYST
+  o ADVANCED_ANALYST
+  o ADMIN
+}
+
+enum State {
+  o NOT_ASSIGNED
+  o PLANNED
+  o WORK_IN_PROGRESS
+  o FINISHED
+}
+
+enum AnalysisType {
+  o PRIMARY
+  o SECONDARY
+  o RESOLUTION
+}
+
+enum Method {
+  o AUTOMATIC
+  o MANUAL
+}
+
+
+//TRANSACTIONS
+transaction RegisterTube { //ADMIN
+  o String tubeId
+  o Double posX
+  o Double posY
+  o Double length
+}
+
+transaction CreateWork { //ADMIN
+  o String workId
+  o String description
+}
+
+transaction CloseWork { //ADMIN
+  o String workId
+}
+
+transaction AddCalibration { //ADMIN
+  o String calId
+  o String equipment
+  o String workId
+}
+
+//This tx allows an analyst (primary o secondary) or an advance analyst to take a calibration
+transaction GetCalibration { //ANALYST or ADVANCED_ANALYST
+  o String calId
+  o String participantId
+  o AnalysisType type
+}
+
+//This tx changes one states (checking before if all the analysis for this role has been completed)
+transaction EndCalibration { //ANALYST or ADVANCED_ANALYST --> IMPLEMENTAR
+  o String calId
+  o AnalysisType type
+}
+
+transaction AddAcquisition { //ACQUISITOR
+  o String acqId
+  o String filename
+  o String calId
+  o String tubeId
+}
+
+transaction AddAnalysis { //ANALYSIS or ADVANCED_ANALYST
+  o String analysisId
+  o Method method
+  o String acqId
+  o String[] indications
+}
+
+
+//EVENTS

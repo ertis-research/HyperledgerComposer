@@ -1,0 +1,156 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace uma.coc.network
+
+//---------------------------------------------Participants---------------------------------------------------------------------------
+abstract participant CoCParticipant identified by participantId {
+  o String participantId
+}
+
+participant Agent extends CoCParticipant {
+  o String firstName
+  o String lastName
+  o DateTime birthdate
+  o Gender gender
+  o Job job
+  o String studies
+  o String office
+}
+
+participant Deposit extends CoCParticipant {
+  o String office
+}
+//----------------------------------------------Assets--------------------------------------------------------------------------------
+asset Case identified by caseId {
+  o String caseId
+  o String description
+  o DateTime openingDate
+  o String resolution optional
+  o DateTime closureDate optional
+  o CaseStatus status
+  --> CoCParticipant openedBy
+  --> CoCParticipant[] participants
+}
+
+asset Evidence identified by evidenceId {
+  o String evidenceId
+  o String hash
+  o HashType hash_type
+  o String description
+  o String extension
+  o DateTime additionDate
+  --> CoCParticipant owner
+  o Owner[] olderOwners
+  --> Case caso //case is a reserved word, so I must use another word to name the attribute
+}
+
+//---------------------------------------------Concepts------------------------------------------------------------------------------
+concept Owner {
+  --> CoCParticipant owner
+  o DateTime till
+}
+
+//-----------------------------------------------Enums-------------------------------------------------------------------------------
+enum Gender {
+  o MALE
+  o FEMALE
+}
+
+enum Job {
+  o DETECTIVE
+  o OFFICER
+  o FORENSICS_TECHNICIAN
+}
+
+enum CaseStatus {
+  o OPENED
+  o CLOSED
+}
+
+enum ParticipantType {
+  o AGENT
+  o DEPOSIT
+}
+
+enum HashType {
+  o MD5
+  o SHA1
+  o SHA256
+  o SHA512
+}
+//-----------------------------------------Transactions & Events---------------------------------------------------------------------
+
+//1. Open a case by an agent
+transaction OpenCase {
+  o String id
+  o String description
+}
+
+event CaseOpened {
+  o String case_id
+  o String openedBy_participant_id
+}
+
+//2. Close a case (only the agent who opened it can close the case)
+transaction CloseCase {
+  o String id
+  o String resolution
+}
+
+event CaseClosed {
+  o String case_id
+}
+
+//3. The agent who opened the case can add other participants to that case. Only if the case is still opened
+transaction AddParticipant {
+  o String case_id
+  o ParticipantType participant_type
+  o String participant_id
+}
+
+event ParticipantAdded {
+  o String case_id
+  o ParticipantType participant_type
+  o String participant_id
+}
+
+//4. Add a new evidence and link it with a case opened
+transaction AddEvidence {
+  o String evidence_id
+  o String hash
+  o HashType hash_type
+  o String description
+  o String extension
+  o String case_id
+}
+
+event EvidenceAdded {
+  o String evidence_id
+  o String case_id
+  o String participant_id
+}
+
+//5. The temporal owner of the evidence transfers it to aother agent
+transaction TransferEvidence {
+  o String evidence_id
+  o ParticipantType participant_type
+  o String participant_id //new owner id
+}
+
+event EvidenceTransferred {
+  o String evidence_id
+  o String old_owner_id
+  o String new_owner_id
+}
