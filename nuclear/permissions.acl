@@ -30,44 +30,106 @@ rule StaffMandatoryRule {
     action: ALLOW
 }
 
-rule AcquisitorTransactionRule {
-    description: "Allow acquisitors to add a new acquisition"
-    participant(p): "ertis.uma.nuclear.Staff"
-    operation: CREATE
-    resource: "ertis.uma.nuclear.AddAcquisition"
-    condition: (p.role === 'ACQUISITOR')
+//Participants can READ network resources
+rule StaffMembersReadRule {
+    description: "Allow all participants read access to all resources"
+    participant: "ertis.uma.nuclear.Staff"
+    operation: READ
+    resource: "ertis.uma.nuclear.*"
     action: ALLOW
 }
 
-rule AnalystTransactionRule {
-    description: "Allow analysts and advanced analysts to add a new a analysis full"
+//TRANSACTION RULES
+rule RegisterTubeRule {
+    description: "Allow admins to register tubes"
     participant(p): "ertis.uma.nuclear.Staff"
     operation: CREATE
-    resource: "ertis.uma.nuclear.AddAnalysis"
+    resource: "ertis.uma.nuclear.Tube"
+    transaction: "ertis.uma.nuclear.RegisterTube"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule CreateWorkRule {
+    description: "Allow admins to create works"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Work"
+    transaction: "ertis.uma.nuclear.CreateWork"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule CloseWorkRule {
+    description: "Allow admins to close works"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Work"
+    transaction: "ertis.uma.nuclear.CloseWork"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule AddCalibrationRule {
+    description: "Allow admins to add calibrations"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Calibration"
+    transaction: "ertis.uma.nuclear.AddCalibration"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule GetCalibrationRule {
+    description: "Allow analysts and advanced analysts to get calibrations for its analysis"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Calibration"
+    transaction: "ertis.uma.nuclear.GetCalibration"
     condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
     action: ALLOW
 }
 
-//Should and acquisitor READ analysis?
-rule EverybodyCanReadEverythingRule {
-    description: "Allow all participants read access to all resources"
-    participant: "ertis.uma.nuclear.Staff"
-    operation: READ
-    resource: "ertis.uma.nuclear.*" //Only resources maybe
+rule EndCalibrationRule {
+    description: "Allow analysts and advanced analysts to finalize the analysis of one calibration"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Calibration"
+    transaction: "ertis.uma.nuclear.EndCalibration"
+    condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
     action: ALLOW
 }
 
+rule AddAcquisitionRule {
+    description: "Allow acquisitors to add acquisitions"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Acquisition"
+    transaction: "ertis.uma.nuclear.AddAcquisition"
+    condition: (p.role === 'ACQUISITOR')
+    action: ALLOW
+}
 
-//Network Admins Rules
-rule NetworkAdminUser {
-    description: "Grant business network administrators full access to user resources"
+rule AddAnalysisRule {
+    description: "Allow analysts and advanced analysts to add a new analysis"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Analysis"
+    transaction: "ertis.uma.nuclear.AddAnalysis"
+    condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+    action: ALLOW
+}
+
+//NETWORK ADMINISTRATOR RULES
+rule NetAdminNuclearRule {
+    description: "Grant business network administrators full access to network resources"
     participant: "org.hyperledger.composer.system.NetworkAdmin"
     operation: ALL
-    resource: "**"
+    resource: "ertis.uma.nuclear.*"
     action: ALLOW
 }
 
-rule NetworkAdminSystem {
+rule NetAdminSystemRule {
     description: "Grant business network administrators full access to system resources"
     participant: "org.hyperledger.composer.system.NetworkAdmin"
     operation: ALL

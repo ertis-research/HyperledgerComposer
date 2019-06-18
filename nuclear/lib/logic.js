@@ -146,6 +146,7 @@ async function closeWork(txData) {
             }
         });
 
+        //All the calibrations are finished
         work.state = 'FINISHED';
         return workRegistry.update(work);
     }).then(() => {
@@ -305,6 +306,7 @@ async function endCalibration(txData) {
     var participantId = getId(currentParticipant.getFullyQualifiedIdentifier());
 
     var calibrationRegistry = {}; //Global variable for calibration registry
+    var calibration = {}; //Global variable for the calibration the participant wants to finish
 
     //Get staff registry
     return getAssetRegistry('ertis.uma.nuclear.Calibration').then((registry) => {
@@ -314,39 +316,58 @@ async function endCalibration(txData) {
     }).then((cal) => {
         if (!cal) throw new Error("Calibration with identifier " + txData.calId + " does not exist");
 
+        calibration = cal;
         switch (txData.type) {
             case 'PRIMARY':
                 if (cal.primaryAnalyst === 'resource:' + participantId) {
-                    let cal_fqi = "resource:" + cal.getFullyQualifiedIdentifier();
+                    let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the primary analyst can finalize the primary analysis");
                 }
-                break;
             case 'SECONDARY':
                 if (cal.secondaryAnalyst === 'resource:' + participantId) {
-                    let cal_fqi = "resource:" + cal.getFullyQualifiedIdentifier();
+                    let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the secondary analyst can finalize the secondary analysis");
                 }
-                break;
             case 'RESOLUTION':
                 if (cal.advancedAnalyst === 'resource:' + participantId) {
-                    let cal_fqi = "resource:" + cal.getFullyQualifiedIdentifier();
+                    let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the advance analyst can finalize the resolution");
                 }
-                break;
             default:
                 throw new Error("Invalidad analysis type");
         }
     }).then((results) => {
         //Must exist one analysis of this participant for each acquisition
+        let exists;
         results.forEach((element) => {
-            //SEGUIR AQUI
+            let acq_fqi = "resource:" + element.getFullyQualifiedIdentifier();
+            let an_fqi = "resource:" + currentParticipant.getFullyQualifiedIdentifier();
+            exists = await existsAnalysis(acq_fqi, an_fqi);
+            if (!exists) throw new Error("At least one acquisition has not been analyzed. You must analyze all acquisitions of the calibration to finish it.")
         });
+
+        //All the acquisitions have been analyzed by this participant. The calibration for him/her can be closed.
+        switch (txData.type) {
+            case 'PRIMARY':
+                calibration.primaryState = 'FINISHED';
+                break;
+            case 'SECONDARY':
+                calibration.secondaryState = 'FINISHED';
+                break;
+            case 'RESOLUTION':
+                calibration.resolutionState = 'FINISHED';
+                break;
+        }
+
+        return calibrationRegistry.update(calibration);
+    }).then(() => {
+        //Successfull asset update
     })
 }
 
@@ -448,9 +469,8 @@ async function addAnalysis(txData) {
         analysisRegistry = registry;
 
         let newAnalysis = factory.newResource('ertis.uma.nuclear', 'Analysis', txData.analysisId);
-        //analysisDate??
+        newAnalysis.analysisDate = new Date();
         newAnalysis.method = txData.method;
-        newAnalysis.state = 'FINISHED';
         newAnalysis.indications = txData.indications;
         let rs_acq = factory.newRelationship('ertis.uma.nuclear', 'Acquisition', txData.acqId);
         newAnalysis.acquisition = rs_acq;
