@@ -342,15 +342,15 @@ async function endCalibration(txData) {
             default:
                 throw new Error("Invalidad analysis type");
         }
-    }).then((results) => {
+    }).then(async(results) => {
         //Must exist one analysis of this participant for each acquisition
         let exists;
-        results.forEach((element) => {
-            let acq_fqi = "resource:" + element.getFullyQualifiedIdentifier();
+        for(let element of results) {
+        	let acq_fqi = "resource:" + element.getFullyQualifiedIdentifier();
             let an_fqi = "resource:" + currentParticipant.getFullyQualifiedIdentifier();
             exists = await existsAnalysis(acq_fqi, an_fqi);
             if (!exists) throw new Error("At least one acquisition has not been analyzed. You must analyze all acquisitions of the calibration to finish it.")
-        });
+        }
 
         //All the acquisitions have been analyzed by this participant. The calibration for him/her can be closed.
         switch (txData.type) {
