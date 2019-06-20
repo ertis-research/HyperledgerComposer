@@ -40,6 +40,15 @@ rule StaffMembersReadRule {
 }
 
 //TRANSACTION RULES
+rule ExecuteRegisterTubeTxRule {
+  description: "Allow admins to execute tx RegisterTube"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.RegisterTube"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
+}
+
 rule RegisterTubeRule {
     description: "Allow admins to register tubes"
     participant(p): "ertis.uma.nuclear.Staff"
@@ -48,6 +57,15 @@ rule RegisterTubeRule {
     transaction: "ertis.uma.nuclear.RegisterTube"
     condition: (p.role === 'ADMIN')
     action: ALLOW
+}
+
+rule ExecuteCreateWorkTxRule {
+  description: "Allow admins to execute tx CreateWork"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.CreateWork"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
 }
 
 rule CreateWorkRule {
@@ -60,6 +78,15 @@ rule CreateWorkRule {
     action: ALLOW
 }
 
+rule ExecuteCloseWorkTxRule {
+  description: "Allow admins to execute tx CloseWork"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.CloseWork"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
+}
+
 rule CloseWorkRule {
     description: "Allow admins to close works"
     participant(p): "ertis.uma.nuclear.Staff"
@@ -68,6 +95,15 @@ rule CloseWorkRule {
     transaction: "ertis.uma.nuclear.CloseWork"
     condition: (p.role === 'ADMIN')
     action: ALLOW
+}
+
+rule ExecuteAddCalibrationTxRule {
+  description: "Allow admins to execute tx AddCalibration"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.AddCalibration"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
 }
 
 rule AddCalibrationRule {
@@ -80,6 +116,15 @@ rule AddCalibrationRule {
     action: ALLOW
 }
 
+rule ExecuteGetCalibrationTxRule {
+  description: "Allow analysts and advanced analysts to execute tx GetCalibration"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.GetCalibration"
+  condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+  action: ALLOW
+}
+
 rule GetCalibrationRule {
     description: "Allow analysts and advanced analysts to get calibrations for its analysis"
     participant(p): "ertis.uma.nuclear.Staff"
@@ -88,6 +133,15 @@ rule GetCalibrationRule {
     transaction: "ertis.uma.nuclear.GetCalibration"
     condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
     action: ALLOW
+}
+
+rule ExecuteEndCalibrationTxRule {
+  description: "Allow analysts and advanced analysts to execute tx EndCalibration"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.EndCalibration"
+  condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+  action: ALLOW
 }
 
 rule EndCalibrationRule {
@@ -100,6 +154,15 @@ rule EndCalibrationRule {
     action: ALLOW
 }
 
+rule ExecuteAddAcquisitionTxRule {
+  description: "Allow acquisitors to execute tx AddAcquisition"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.AddAcquisition"
+  condition: (p.role === 'ACQUISITOR')
+  action: ALLOW
+}
+
 rule AddAcquisitionRule {
     description: "Allow acquisitors to add acquisitions"
     participant(p): "ertis.uma.nuclear.Staff"
@@ -108,6 +171,15 @@ rule AddAcquisitionRule {
     transaction: "ertis.uma.nuclear.AddAcquisition"
     condition: (p.role === 'ACQUISITOR')
     action: ALLOW
+}
+
+rule ExecuteAddAnalysisTxRule {
+  description: "Allow analysts and advanced analysts to execute tx AddAnalysis"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.AddAnalysis"
+  condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+  action: ALLOW
 }
 
 rule AddAnalysisRule {
