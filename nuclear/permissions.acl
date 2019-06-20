@@ -116,6 +116,16 @@ rule AddCalibrationRule {
     action: ALLOW
 }
 
+rule AddCalibrationRule2 {
+    description: "Allow admins to add calibrations"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Work"
+    transaction: "ertis.uma.nuclear.AddCalibration"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
 rule ExecuteGetCalibrationTxRule {
   description: "Allow analysts and advanced analysts to execute tx GetCalibration"
   participant(p): "ertis.uma.nuclear.Staff"

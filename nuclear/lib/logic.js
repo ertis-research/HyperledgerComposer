@@ -33,7 +33,7 @@ async function registerTube(txData) {
 
         return staffRegistry.get(participantId);
     }).then((staff) => {
-        if (!staff) throw new Error("The participant with identifier " + txData.participantId +
+        if (!staff) throw new Error("The participant with identifier " + participantId +
             " is not a staff member.");
 
         if (staff.role === 'ADMIN') {
@@ -76,7 +76,7 @@ async function createWork(workData) {
 
         return staffRegistry.get(participantId);
     }).then((staff) => {
-        if (!staff) throw new Error("The participant with identifier " + txData.participantId +
+        if (!staff) throw new Error("The participant with identifier " + participantId +
             " is not a staff member.");
 
         if (staff.role === 'ADMIN') {
@@ -89,7 +89,7 @@ async function createWork(workData) {
         workRegistry = registry;
 
         //Add the resource 'Work'
-        let newWork = factory.newResource('ertis.uma.nuclear', 'Work', workData.wordId);
+        let newWork = factory.newResource('ertis.uma.nuclear', 'Work', workData.workId);
         newWork.workDate = new Date();
         newWork.state = "PLANNED";
         newWork.description = workData.description;
@@ -103,6 +103,7 @@ async function createWork(workData) {
 /**
  * Close a work. All the calibrations of this work must be finished
  * @param {ertis.uma.nuclear.CloseWork} txData 
+ * @transaction
  */
 async function closeWork(txData) {
     var currentParticipant = getCurrentParticipant(); // Get current participant
@@ -118,7 +119,7 @@ async function closeWork(txData) {
 
         return staffRegistry.get(participantId);
     }).then((staff) => {
-        if (!staff) throw new Error("The participant with identifier " + txData.participantId +
+        if (!staff) throw new Error("The participant with identifier " + participantId +
             " is not a staff member.");
 
         if (staff.role === 'ADMIN') {
@@ -130,7 +131,7 @@ async function closeWork(txData) {
     }).then((registry) => {
         workRegistry = registry;
 
-        return workRegistry.get(txData.wordId);
+        return workRegistry.get(txData.workId);
     }).then((wrk) => {
         if (!wrk) throw new Error("Work with identifier " + txData.workId + "does not exist.");
 
@@ -173,9 +174,9 @@ async function addCalibration(txData) {
     return getParticipantRegistry('ertis.uma.nuclear.Staff').then((registry) => {
         staffRegistry = registry;
 
-        staffRegistry.get(participantId);
+        return staffRegistry.get(participantId);
     }).then((staff) => {
-        if (!staff) throw new Error("The participant with identifier " + txData.participantId +
+        if (!staff) throw new Error("The participant with identifier " + participantId +
             " is not a staff member.");
 
         if (staff.role === 'ADMIN') {
@@ -199,9 +200,9 @@ async function addCalibration(txData) {
         let newCal = factory.newResource('ertis.uma.nuclear', 'Calibration', txData.calId);
         newCal.calDate = new Date();
         newCal.equipment = txData.equipment;
-        newCal.primaryState = "NOT_ASIGNED";
-        newCal.secondaryState = "NOT_ASIGNED";
-        newCal.resolutionState = "NOT_ASIGNED";
+        newCal.primaryState = "NOT_ASSIGNED";
+        newCal.secondaryState = "NOT_ASSIGNED";
+        newCal.resolutionState = "NOT_ASSIGNED";
         let workRel = factory.newRelationship('ertis.uma.nuclear', 'Work', txData.workId);
         newCal.work = workRel;
 
@@ -227,6 +228,9 @@ async function addCalibration(txData) {
  * @transaction
  */
 async function getCalibration(txData) {
+    var currentParticipant = getCurrentParticipant(); // Get current participant
+    var participantId = getId(currentParticipant.getFullyQualifiedIdentifier());
+
     var factory = getFactory(); //Get the factory
     var calibrationRegistry = {}; //Global variable for calibration registry
     var calibration = {}; //Global variable for the calibration itself
@@ -246,9 +250,9 @@ async function getCalibration(txData) {
     }).then((registry) => {
         staffRegistry = registry;
 
-        return staffRegistry.get(txData.participantId);
+        return staffRegistry.get(participantId);
     }).then((staff) => {
-        if (!staff) throw new Error("The participant with identifier " + txData.participantId +
+        if (!staff) throw new Error("The participant with identifier " + participantId +
             " is not a staff member.");
 
         if (!(staff.role == 'ANALYST' || staff.role == 'ADVANCED_ANALYST')) {
@@ -257,18 +261,18 @@ async function getCalibration(txData) {
 
         switch (txData.type) {
             case 'PRIMARY':
-                if (staff.role === 'ANALYST' && calibration.primaryState === 'NOT_ASIGNED') {
+                if (staff.role === 'ANALYST' && calibration.primaryState === 'NOT_ASSIGNED') {
                     calibration.primaryState = 'WORK_IN_PROGRESS';
-                    let rs = factory.newRelationship('ertis.uma.nuclear', 'Staff', txData.participantId);
+                    let rs = factory.newRelationship('ertis.uma.nuclear', 'Staff', participantId);
                     calibration.primaryAnalyst = rs;
                 } else {
                     throw new Error("Error...");
                 }
                 break;
             case 'SECONDARY':
-                if (staff.role === 'ANALYST' && calibration.secondaryState === 'NOT_ASIGNED') {
+                if (staff.role === 'ANALYST' && calibration.secondaryState === 'NOT_ASSIGNED') {
                     calibration.secondaryState = 'WORK_IN_PROGRESS';
-                    let rs = factory.newRelationship('ertis.uma.nuclear', 'Staff', txData.participantId);
+                    let rs = factory.newRelationship('ertis.uma.nuclear', 'Staff', participantId);
                     calibration.secondaryAnalyst = rs;
                 } else {
                     throw new Error("Error...");
@@ -279,11 +283,11 @@ async function getCalibration(txData) {
                     calibration.secondaryState === 'FINISHED') {
 
                     calibration.resolutionState = 'WORK_IN_PROGRESS';
-                    let rs = factory.newRelationship('ertis.uma.nuclear', 'Staff', txData.participantId);
+                    let rs = factory.newRelationship('ertis.uma.nuclear', 'Staff', participantId);
                     calibration.advancedAnalyst = rs;
                 } else {
-                    throw new Error("A resolution analysis can only be assigned when primary" +
-                        "and secondary analysis are finished");
+                    throw new Error("A resolution analysis can only be assigned when primary " +
+                        "and secondary analysis are finished. In addition, it can only be assigned to an advanced analyst.");
                 }
                 break;
             default:
@@ -345,8 +349,8 @@ async function endCalibration(txData) {
     }).then(async(results) => {
         //Must exist one analysis of this participant for each acquisition
         let exists;
-        for(let element of results) {
-        	let acq_fqi = "resource:" + element.getFullyQualifiedIdentifier();
+        for (let element of results) {
+            let acq_fqi = "resource:" + element.getFullyQualifiedIdentifier();
             let an_fqi = "resource:" + currentParticipant.getFullyQualifiedIdentifier();
             exists = await existsAnalysis(acq_fqi, an_fqi);
             if (!exists) throw new Error("At least one acquisition has not been analyzed. You must analyze all acquisitions of the calibration to finish it.")

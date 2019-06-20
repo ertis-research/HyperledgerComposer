@@ -124,7 +124,6 @@ transaction AddCalibration { //ADMIN
 //This tx allows an analyst (primary o secondary) or an advance analyst to take a calibration
 transaction GetCalibration { //ANALYST or ADVANCED_ANALYST
   o String calId
-  o String participantId
   o AnalysisType type
 }
 
