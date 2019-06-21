@@ -55,6 +55,7 @@ asset Calibration identified by calId {
 asset Acquisition identified by acqId {
   o String acqId
   o DateTime acqDate
+  o String hash
   o String filename
   --> Tube tube
   --> Staff acquisitor
@@ -136,6 +137,7 @@ transaction EndCalibration { //ANALYST or ADVANCED_ANALYST --> IMPLEMENTAR
 transaction AddAcquisition { //ACQUISITOR
   o String acqId
   o String filename
+  o String hash
   o String calId
   o String tubeId
 }

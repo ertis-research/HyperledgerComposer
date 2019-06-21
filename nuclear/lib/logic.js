@@ -245,6 +245,13 @@ async function getCalibration(txData) {
         if (!calib) throw new Error("Calibration with identifier " + txData.calId + " does not exist");
         calibration = calib;
 
+        //Get acquisitions of this calibration
+        let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
+        return query('AcquisitionsByCalibration', { cal_fqi: cal_fqi });
+    }).then((results) => {
+        //Check the number of acquisitions of this calibration
+        if (results.length === 0) throw new Error("You can not assign a calibration with zero acquisitions. Try it later.");
+
         //Get staff registry
         return getParticipantRegistry('ertis.uma.nuclear.Staff');
     }).then((registry) => {
@@ -323,21 +330,21 @@ async function endCalibration(txData) {
         calibration = cal;
         switch (txData.type) {
             case 'PRIMARY':
-                if (cal.primaryAnalyst === 'resource:' + participantId) {
+                if (cal.primaryAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
                     let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the primary analyst can finalize the primary analysis");
                 }
             case 'SECONDARY':
-                if (cal.secondaryAnalyst === 'resource:' + participantId) {
+                if (cal.secondaryAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
                     let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the secondary analyst can finalize the secondary analysis");
                 }
             case 'RESOLUTION':
-                if (cal.advancedAnalyst === 'resource:' + participantId) {
+                if (cal.advancedAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
                     let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
@@ -422,6 +429,7 @@ async function addAcquisition(txData) {
         let newAcq = factory.newResource('ertis.uma.nuclear', 'Acquisition', txData.acqId);
         newAcq.acqDate = new Date();
         newAcq.filename = txData.filename;
+        newAcq.hash = txData.hash;
         let rs_tube = factory.newRelationship('ertis.uma.nuclear', 'Tube', txData.tubeId);
         newAcq.tube = rs_tube;
         let rs_acquisitor = factory.newRelationship('ertis.uma.nuclear', 'Staff', participantId);
@@ -467,6 +475,14 @@ async function addAnalysis(txData) {
         return acquisitionRegistry.exists(txData.acqId);
     }).then((exists) => {
         if (!exists) throw new Error("Acquisition with identifier " + txData.acqId + " does not exist");
+
+        //Get analysis made by this participant and associated to this acquisition
+        let acq_fqi = "resource:ertis.uma.nuclear.Acquisition#" + txData.acqId;
+        let an_fqi = "resource:" + currentParticipant.getFullyQualifiedIdentifier();
+        return query('AnalysisByAcquisitionAndAnalyst', { acq_fqi: acq_fqi, an_fqi: an_fqi });
+
+    }).then((results) => {
+        if (results.length !== 0) throw new Error("You have already analized this acquisition (acq id: " + txData.acqId + ").");
 
         return getAssetRegistry('ertis.uma.nuclear.Analysis');
     }).then((registry) => {
