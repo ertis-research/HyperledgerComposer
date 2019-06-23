@@ -21,8 +21,7 @@ rule MandatoryRule {
     action: ALLOW
 }
 
-//  Allow the 'System Network Admin' to carry out Identities management
-//  and Network operations
+// Allow the System Network Admin to carry out Identities management
 rule SystemResourcesControlPermission {
     description: "Give network admin ALL access to system resources"
     participant: "org.hyperledger.composer.system.NetworkAdmin"
@@ -30,7 +29,7 @@ rule SystemResourcesControlPermission {
     resource: "org.hyperledger.composer.system.**"
     action: ALLOW
 }
-
+// Allow the System Network Admin to carry out Network operations
 rule NetworkControlPermission {
     description: "Give network admin ALL access to network resources"
     participant: "org.hyperledger.composer.system.NetworkAdmin"
@@ -39,19 +38,125 @@ rule NetworkControlPermission {
     action: ALLOW
 }
 
-//Allow 'CoCParticipant's to manage network resource and execute transactions
-rule ParticipantsRuleOne {
+//Allow CoCParticipants to read resource registries
+rule ParticipantsCanReadRule {
     description: "Give participants ALL access to network resources"
     participant: "uma.coc.network.CoCParticipant"
-    operation: ALL
+    operation: READ
     resource: "uma.coc.network.*"
     action: ALLOW
 }
 
-rule ParticipantsRuleTwo {
+//Allow CoCParticipants to execute transaction (creating new entries of HistorianRecord)
+rule ParticipantsCanExecuteTxRule {
     description: "Give participants WRITE access to HistorianRecord"
     participant: "uma.coc.network.CoCParticipant"
     operation: CREATE
     resource: "org.hyperledger.composer.system.HistorianRecord"
+    action: ALLOW
+}
+
+//1. OpenCase rules
+rule AgentsCanOpenCaseRule {
+    description: "Allow agents (officers or detectives) to execute tx OpenCase"
+    participant(p): "uma.coc.network.Agent"
+    operation: CREATE
+    resource: "uma.coc.network.OpenCase"
+    condition: (p.job === 'OFFICER' || p.job === 'DETECTIVE')
+    action: ALLOW
+}
+
+rule AgentsCanOpenCaseRule2 {
+    description: "Allow agents (officers or detectives) to create an asset of type Case when executing tx OpenCase"
+    participant(p): "uma.coc.network.Agent"
+    operation: CREATE
+    resource: "uma.coc.network.Case"
+    transaction: "uma.coc.network.OpenCase"
+    condition: (p.job === 'OFFICER' || p.job === 'DETECTIVE')
+    action: ALLOW 
+}
+
+//2. CloseCase rules
+rule AgentsCanCloseCaseRule {
+    description: "Allow agents to execute tx CloseCase"
+    participant: "uma.coc.network.Agent"
+    operation: CREATE
+    resource: "uma.coc.network.CloseCase"
+    action: ALLOW
+}
+
+rule AgentsCanCloseCaseRule2 {
+    description: "Allow the agent who opened the case to modify that asset of type Case when executing tx CloseCase"
+    participant(p): "uma.coc.network.Agent"
+    operation: UPDATE
+    resource(r): "uma.coc.network.Case"
+    transaction: "uma.coc.network.CloseCase"
+    condition: (p === r.owner)
+    action: ALLOW
+}
+
+rule AgentsCanCloseCaseRule3 {
+    description: "Allow agents to modify assets of type Evidence when executing tx CloseCase"
+    participant: "uma.coc.network.Agent"
+    operation: UPDATE
+    resource: "uma.coc.network.Evidence"
+    transaction: "uma.coc.network.CloseCase"
+    action: ALLOW
+}
+
+//3. AddParticipant rules
+rule AddParticipantRule {
+    description: "Allow agents to execute tx AddParticipant"
+    participant: "uma.coc.network.Agent"
+    operation: CREATE
+    resource: "uma.coc.network.AddParticipant"
+    action: ALLOW
+}
+
+rule AddParticipantRule2 {
+    description: "Allow the agent who opened the case to modify that asset of type Case when executing tx AddParticipant"
+    participant(p): "uma.coc.network.Agent"
+    operation: UPDATE
+    resource(r): "uma.coc.network.Case"
+    transaction: "uma.coc.network.AddParticipant"
+    condition: (p === r.owner)
+    action: ALLOW
+}
+
+//4. AddEvidence rules
+rule AddEvidenceRule {
+    description: "Allow agents to execute tx AddEvidence"
+    participant: "uma.coc.network.Agent"
+    operation: CREATE
+    resource: "uma.coc.network.AddEvidence"
+    action: ALLOW
+}
+
+rule AddEvidenceRule2 {
+    description: "Allow agents involved in the case to create assets of type Evidence when executing tx AddEvidence"
+    participant(p): "uma.coc.network.Agent"
+    operation: CREATE
+    resource(r): "uma.coc.network.Evidence"
+    transaction: "uma.coc.network.AddEvidence"
+    condition: (isAgentInvolved(r.caso.participants, p.getIdentifier()))
+    action: ALLOW
+}
+
+//5. TransferEvidence rules
+rule TransferEvidenceRule {
+    description: "Allow CoCParticipants to execute tx TransferEvidence"
+    participant: "uma.coc.network.CoCParticipant"
+    operation: CREATE
+    resource: "uma.coc.network.TransferEvidence"
+    action: ALLOW
+}
+
+rule TransferEvidenceRule2 {
+    description: "Allow the owner of the evidence to update that asset of type Evidence when executing tx TransferEvidence"
+    participant(p): "uma.coc.network.CoCParticipant"
+    operation: UPDATE
+    resource(r): "uma.coc.network.Evidence"
+    transaction: "uma.coc.network.TransferEvidence"
+    condition: (p === r.owner)
     action: ALLOW
 }
