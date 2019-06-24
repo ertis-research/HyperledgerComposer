@@ -2,8 +2,8 @@
   "engines": {
     "composer": "^0.20.0"
   },
-  "name": "coc",
-  "version": "0.0.1",
+  "name": "cocv2",
+  "version": "0.0.28",
   "description": "Chain of Custody",
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/coc.bna",

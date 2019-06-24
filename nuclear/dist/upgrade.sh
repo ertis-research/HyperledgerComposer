@@ -30,6 +30,10 @@ done
 if [ $VERSION ]
 then
     echo "Version: " $VERSION
+    #Delete older BNA
+    rm archive.bna
+    echo "Older BNA deleted."
+    
     # Create the BNA for new version
     composer archive create -t dir -n ../ -a archive.bna
 

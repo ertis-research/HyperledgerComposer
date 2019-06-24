@@ -37,8 +37,8 @@ then
     composer network install -a archive.bna -c PeerAdmin@hlfv1
 
     # Upgrade the network
-    composer network upgrade -n coc -V $VERSION -c PeerAdmin@hlfv1
+    composer network upgrade -n cocv2 -V $VERSION -c PeerAdmin@hlfv1
     
     # Test the network connection
-    composer network ping -c admin@coc
+    composer network ping -c admin@cocv2
 fi

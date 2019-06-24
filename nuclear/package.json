@@ -3,7 +3,7 @@
     "composer": "^0.20.0"
   },
   "name": "nuclear",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Nuclear Inspection System",
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create --sourceType dir --sourceName . -a ./dist/nuclear.bna",
