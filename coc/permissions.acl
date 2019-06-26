@@ -40,7 +40,7 @@ rule NetworkControlPermission {
 
 //Allow CoCParticipants to read resource registries
 rule ParticipantsCanReadRule {
-    description: "Give participants ALL access to network resources"
+    description: "Give participants READ access to network resources"
     participant: "uma.coc.network.CoCParticipant"
     operation: READ
     resource: "uma.coc.network.*"
@@ -49,7 +49,7 @@ rule ParticipantsCanReadRule {
 
 //Allow CoCParticipants to execute transaction (creating new entries of HistorianRecord)
 rule ParticipantsCanExecuteTxRule {
-    description: "Give participants WRITE access to HistorianRecord"
+    description: "Give participants CREATE access to HistorianRecord"
     participant: "uma.coc.network.CoCParticipant"
     operation: CREATE
     resource: "org.hyperledger.composer.system.HistorianRecord"
