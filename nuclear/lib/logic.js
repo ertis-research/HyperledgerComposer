@@ -494,7 +494,7 @@ async function addAnalysis(txData) {
         newAnalysis.indications = txData.indications;
         let rs_acq = factory.newRelationship('ertis.uma.nuclear', 'Acquisition', txData.acqId);
         newAnalysis.acquisition = rs_acq;
-        let rs_analyst = factory.newRelationship('ertis.uma.nuclear', 'Analyst', participantId);
+        let rs_analyst = factory.newRelationship('ertis.uma.nuclear', 'Staff', participantId);
         newAnalysis.analyst = rs_analyst;
 
         return analysisRegistry.add(newAnalysis);
