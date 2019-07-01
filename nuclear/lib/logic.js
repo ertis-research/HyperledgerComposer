@@ -143,7 +143,7 @@ async function closeWork(txData) {
         //Check if all the calibrations of this work are finished (3 analysis completed)-
         result.forEach((element) => {
             if (element.resolutionState !== 'FINISHED') {
-                throw new Error("At least one of the calibrations of this work is no finished");
+                throw new Error("At least one of the calibrations of this work is not finished");
             }
         });
 
@@ -330,28 +330,28 @@ async function endCalibration(txData) {
         calibration = cal;
         switch (txData.type) {
             case 'PRIMARY':
-                if (cal.primaryAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
+                if (cal.primaryAnalyst !== undefined && cal.primaryAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
                     let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the primary analyst can finalize the primary analysis");
                 }
             case 'SECONDARY':
-                if (cal.secondaryAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
+                if (cal.secondaryAnalyst !== undefined && cal.secondaryAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
                     let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the secondary analyst can finalize the secondary analysis");
                 }
             case 'RESOLUTION':
-                if (cal.advancedAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
+                if (cal.advancedAnalyst !== undefined && cal.advancedAnalyst.getFullyQualifiedIdentifier() === currentParticipant.getFullyQualifiedIdentifier()) {
                     let cal_fqi = "resource:" + calibration.getFullyQualifiedIdentifier();
                     return query("AcquisitionsByCalibration", { cal_fqi: cal_fqi });
                 } else {
                     throw new Error("Only the advance analyst can finalize the resolution");
                 }
             default:
-                throw new Error("Invalidad analysis type");
+                throw new Error("Invalid analysis type");
         }
     }).then(async(results) => {
         //Must exist one analysis of this participant for each acquisition
@@ -482,7 +482,7 @@ async function addAnalysis(txData) {
         return query('AnalysisByAcquisitionAndAnalyst', { acq_fqi: acq_fqi, an_fqi: an_fqi });
 
     }).then((results) => {
-        if (results.length !== 0) throw new Error("You have already analized this acquisition (acq id: " + txData.acqId + ").");
+        if (results.length !== 0) throw new Error("You have already analyzed this acquisition (acq id: " + txData.acqId + ").");
 
         return getAssetRegistry('ertis.uma.nuclear.Analysis');
     }).then((registry) => {
@@ -518,11 +518,10 @@ function getId(fqi) {
  * @param {String} an_fqi
  */
 async function existsAnalysis(acq_fqi, an_fqi) {
-    query('AnalysisByAcquisitionAndAnalyst', { acq_fqi: acq_fqi, an_fqi: an_fqi }).then((response) => {
-        if (response.length === 0) {
-            return false;
-        } else {
-            return true;
-        }
-    });
+    let response = await query('AnalysisByAcquisitionAndAnalyst', { acq_fqi: acq_fqi, an_fqi: an_fqi });
+    if (response.length === 0) {
+        return false;
+    } else {
+        return true;
+    }
 }
