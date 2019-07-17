@@ -39,3 +39,10 @@ query AnalysisByAnalyst {
     SELECT ertis.uma.nuclear.Analysis
     WHERE (analyst == _$an_fqi)
 }
+
+query AnalysisByAcquisition {
+  description: "Get all the analysis made to one acquisition"
+  statement:
+    SELECT ertis.uma.nuclear.Analysis
+    WHERE (acquisition == _$acq_fqi)
+}
