@@ -1,0 +1,48 @@
+query CalibrationsByWork {
+  description: "Get all the calibrations of one single work"
+  statement:
+    SELECT ertis.uma.nuclear.Calibration
+    WHERE (work == _$work_fqi)
+}
+
+query AcquisitionsByCalibration {
+  description: "Get all the acquisitions of one calibration"
+  statement:
+    SELECT ertis.uma.nuclear.Acquisition
+    WHERE (calibration == _$cal_fqi)
+}
+
+query AcquisitionsByTube {
+  description: "Get all the acquisitions of one tube"
+  statement:
+    SELECT ertis.uma.nuclear.Acquisition
+    WHERE (tube == _$tube_fqi)
+}
+
+query AcquisitionsByStaff {
+  description: "Get all the acquisitions taken by one acquisitor"
+  statement:
+    SELECT ertis.uma.nuclear.Acquisition
+    WHERE (acquisitor == _$acquisitor_fqi)
+}
+
+query AnalysisByAcquisitionAndAnalyst {
+  description: "Get the analysis made by one analyst to one acquisition"
+  statement:
+    SELECT ertis.uma.nuclear.Analysis
+    WHERE (acquisition == _$acq_fqi AND analyst ==_$an_fqi)
+}
+
+query AnalysisByAnalyst {
+  description: "Get all the analysis made by an analyst or an advanced analyst"
+  statement:
+    SELECT ertis.uma.nuclear.Analysis
+    WHERE (analyst == _$an_fqi)
+}
+
+query AnalysisByAcquisition {
+  description: "Get all the analysis made to one acquisition"
+  statement:
+    SELECT ertis.uma.nuclear.Analysis
+    WHERE (acquisition == _$acq_fqi)
+}

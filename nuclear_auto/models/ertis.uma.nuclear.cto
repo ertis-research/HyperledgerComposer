@@ -138,6 +138,8 @@ transaction AddAcquisition { //ACQUISITOR
   o String acqId
   o String filename
   o String hash
+  o String[] acqData //Necessary to carry out automatic analysis
+  o String anaId //Automatic analysis identifier
   o String calId
   o String tubeId
 }

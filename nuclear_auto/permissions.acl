@@ -1,0 +1,230 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+//This rule is needed for all Participants
+rule MandatoryRule {
+    description: "All participants can READ system registries"
+    participant: "ANY"
+    operation: READ
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
+
+//Staff members must have access to HistorianRecord in order to execute txs
+rule StaffMandatoryRule {
+    description: "Give staff members WRITE access to HistorianRecord"
+    participant: "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "org.hyperledger.composer.system.HistorianRecord"
+    action: ALLOW
+}
+
+//Participants can READ network resources
+rule StaffMembersReadRule {
+    description: "Allow all participants read access to all resources"
+    participant: "ertis.uma.nuclear.Staff"
+    operation: READ
+    resource: "ertis.uma.nuclear.*"
+    action: ALLOW
+}
+
+//TRANSACTION RULES
+rule ExecuteRegisterTubeTxRule {
+  description: "Allow admins to execute tx RegisterTube"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.RegisterTube"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
+}
+
+rule RegisterTubeRule {
+    description: "Allow admins to register tubes"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Tube"
+    transaction: "ertis.uma.nuclear.RegisterTube"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule ExecuteCreateWorkTxRule {
+  description: "Allow admins to execute tx CreateWork"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.CreateWork"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
+}
+
+rule CreateWorkRule {
+    description: "Allow admins to create works"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Work"
+    transaction: "ertis.uma.nuclear.CreateWork"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule ExecuteCloseWorkTxRule {
+  description: "Allow admins to execute tx CloseWork"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.CloseWork"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
+}
+
+rule CloseWorkRule {
+    description: "Allow admins to close works"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Work"
+    transaction: "ertis.uma.nuclear.CloseWork"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule ExecuteAddCalibrationTxRule {
+  description: "Allow admins to execute tx AddCalibration"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.AddCalibration"
+  condition: (p.role === 'ADMIN')
+  action: ALLOW
+}
+
+rule AddCalibrationRule {
+    description: "Allow admins to add calibrations"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Calibration"
+    transaction: "ertis.uma.nuclear.AddCalibration"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule AddCalibrationRule2 {
+    description: "Allow admins to add calibrations"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Work"
+    transaction: "ertis.uma.nuclear.AddCalibration"
+    condition: (p.role === 'ADMIN')
+    action: ALLOW
+}
+
+rule ExecuteGetCalibrationTxRule {
+  description: "Allow analysts and advanced analysts to execute tx GetCalibration"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.GetCalibration"
+  condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+  action: ALLOW
+}
+
+rule GetCalibrationRule {
+    description: "Allow analysts and advanced analysts to get calibrations for its analysis"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Calibration"
+    transaction: "ertis.uma.nuclear.GetCalibration"
+    condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+    action: ALLOW
+}
+
+rule ExecuteEndCalibrationTxRule {
+  description: "Allow analysts and advanced analysts to execute tx EndCalibration"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.EndCalibration"
+  condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+  action: ALLOW
+}
+
+rule EndCalibrationRule {
+    description: "Allow analysts and advanced analysts to finalize the analysis of one calibration"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: UPDATE
+    resource: "ertis.uma.nuclear.Calibration"
+    transaction: "ertis.uma.nuclear.EndCalibration"
+    condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+    action: ALLOW
+}
+
+rule ExecuteAddAcquisitionTxRule {
+  description: "Allow acquisitors to execute tx AddAcquisition"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.AddAcquisition"
+  condition: (p.role === 'ACQUISITOR')
+  action: ALLOW
+}
+
+rule AddAcquisitionRule {
+    description: "Allow acquisitors to add acquisitions"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Acquisition"
+    transaction: "ertis.uma.nuclear.AddAcquisition"
+    condition: (p.role === 'ACQUISITOR')
+    action: ALLOW
+}
+
+rule AddAcquisitionRule2 { //NEW RULE
+    description: "Allow acquisitors to carry out automatic analysis"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Analysis"
+    transaction: "ertis.uma.nuclear.AddAcquisition"
+    condition: (p.role === 'ACQUISITOR')
+    action: ALLOW
+}
+
+rule ExecuteAddAnalysisTxRule {
+  description: "Allow analysts and advanced analysts to execute tx AddAnalysis"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.AddAnalysis"
+  condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+  action: ALLOW
+}
+
+rule AddAnalysisRule {
+    description: "Allow analysts and advanced analysts to add a new analysis"
+    participant(p): "ertis.uma.nuclear.Staff"
+    operation: CREATE
+    resource: "ertis.uma.nuclear.Analysis"
+    transaction: "ertis.uma.nuclear.AddAnalysis"
+    condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
+    action: ALLOW
+}
+
+//NETWORK ADMINISTRATOR RULES
+rule NetAdminNuclearRule {
+    description: "Grant business network administrators full access to network resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "ertis.uma.nuclear.*"
+    action: ALLOW
+}
+
+rule NetAdminSystemRule {
+    description: "Grant business network administrators full access to system resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
