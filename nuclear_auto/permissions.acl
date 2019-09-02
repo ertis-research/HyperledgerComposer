@@ -183,16 +183,6 @@ rule AddAcquisitionRule {
     action: ALLOW
 }
 
-rule AddAcquisitionRule2 { //NEW RULE
-    description: "Allow acquisitors to carry out automatic analysis"
-    participant(p): "ertis.uma.nuclear.Staff"
-    operation: CREATE
-    resource: "ertis.uma.nuclear.Analysis"
-    transaction: "ertis.uma.nuclear.AddAcquisition"
-    condition: (p.role === 'ACQUISITOR')
-    action: ALLOW
-}
-
 rule ExecuteAddAnalysisTxRule {
   description: "Allow analysts and advanced analysts to execute tx AddAnalysis"
   participant(p): "ertis.uma.nuclear.Staff"
@@ -210,6 +200,25 @@ rule AddAnalysisRule {
     transaction: "ertis.uma.nuclear.AddAnalysis"
     condition: (p.role === 'ANALYST' || p.role === 'ADVANCED_ANALYST')
     action: ALLOW
+}
+
+rule ExecuteAddAutomaticAnalysis { //NEW RULE
+  description: "Allow staff members with role 'AUTO' to execute tx AddAutomaticAnalysis"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.AddAutomaticAnalysis"
+  condition: (p.role === 'AUTO')
+  action: ALLOW
+}
+
+rule AddAutomaticAnalysisRule { //NEW RULE
+  description: "Allow staff members with role 'AUTO' to add a new automatic analysis"
+  participant(p): "ertis.uma.nuclear.Staff"
+  operation: CREATE
+  resource: "ertis.uma.nuclear.Analysis"
+  transaction: "ertis.uma.nuclear.AddAutomaticAnalysis"
+  condition: (p.role == 'AUTO')
+  action: ALLOW
 }
 
 //NETWORK ADMINISTRATOR RULES

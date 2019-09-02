@@ -17,9 +17,9 @@ namespace ertis.uma.nuclear
 // PARTICIPANTS
 participant Staff identified by participantId {
   o String participantId
-  o String passport
-  o String name
-  o String nationality
+  o String passport optional
+  o String name optional
+  o String nationality optional
   o Role role
 }
 
@@ -75,9 +75,10 @@ asset Analysis identified by analysisId {
 //ENUMERATED TYPES
 enum Role {
   o ACQUISITOR
-  o ANALYST
-  o ADVANCED_ANALYST
   o ADMIN
+  o ADVANCED_ANALYST
+  o ANALYST
+  o AUTO
 }
 
 enum State {
@@ -129,7 +130,7 @@ transaction GetCalibration { //ANALYST or ADVANCED_ANALYST
 }
 
 //This tx changes one states (checking before if all the analysis for this role has been completed)
-transaction EndCalibration { //ANALYST or ADVANCED_ANALYST --> IMPLEMENTAR
+transaction EndCalibration { //ANALYST or ADVANCED_ANALYST
   o String calId
   o AnalysisType type
 }
@@ -138,15 +139,26 @@ transaction AddAcquisition { //ACQUISITOR
   o String acqId
   o String filename
   o String hash
-  o String[] acqData //Necessary to carry out automatic analysis
-  o String anaId //Automatic analysis identifier
   o String calId
   o String tubeId
 }
 
-transaction AddAnalysis { //ANALYSIS or ADVANCED_ANALYST
+transaction AddAnalysis { //ANALYST or ADVANCED_ANALYST
   o String analysisId
-  o Method method
   o String acqId
   o String[] indications
+}
+
+transaction AddAutomaticAnalysis { //AUTO
+  o String analysisId
+  o String acqId
+  o String[] acqData
+}
+
+
+//EVENTS
+event AcquisitionAdded {
+  o String acqId
+  o String filename
+  o String hash
 }

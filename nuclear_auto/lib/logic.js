@@ -432,24 +432,12 @@ async function addAcquisition(txData) {
         //Adding the new asset to the registry
         await acquisitionRegistry.add(newAcq);
 
-        //Perform the automatic analysis
-        let indications = automaticAnalysis(txData.acqData, tube.length);
-
-        //Retrieve analysis registry
-        let analysisRegistry = await getAssetRegistry('ertis.uma.nuclear.Analysis');
-
-        //New asset of type 'Analysis'
-        let newAna = factory.newResource('ertis.uma.nuclear', 'Analysis', txData.anaId);
-        newAna.analysisDate = new Date();
-        newAna.method = "AUTOMATIC";
-        newAna.indications = indications;
-        let rs_acquisition = factory.newRelationship('ertis.uma.nuclear', 'Acquisition', txData.acqId);
-        newAna.acquisition = rs_acquisition;
-        let rs_analyst = factory.newRelationship('ertis.uma.nuclear', 'Staff', 'auto'); //'auto' is the identifier of the analyst who carries out automatic analysis
-        newAna.analyst = rs_analyst;
-
-        //Adding the new asset to the registry
-        await analysisRegistry.add(newAna);
+        //Emit event
+        let event = factory.newEvent('ertis.uma.nuclear', 'AcquisitionAdded');
+        event.acqId = txData.acqId;
+        event.filename = txData.filename;
+        event.hash = txData.hash;
+        emit(event);
 
     } catch (error) {
         console.log(error);
@@ -504,7 +492,7 @@ async function addAnalysis(txData) {
 
         let newAnalysis = factory.newResource('ertis.uma.nuclear', 'Analysis', txData.analysisId);
         newAnalysis.analysisDate = new Date();
-        newAnalysis.method = txData.method;
+        newAnalysis.method = 'MANUAL';
         newAnalysis.indications = txData.indications;
         let rs_acq = factory.newRelationship('ertis.uma.nuclear', 'Acquisition', txData.acqId);
         newAnalysis.acquisition = rs_acq;
@@ -515,6 +503,48 @@ async function addAnalysis(txData) {
     }).then(() => {
         //Successfull asset creation
     });
+}
+
+/**
+ * Add a new automatic analysis
+ * @param {ertis.uma.nuclear.AddAutomaticAnalysis} txData
+ * @transaction
+ */
+async function addAutomaticAnalysis(txData) {
+    let currentParticipant = getCurrentParticipant(); // Get current participant
+
+    if (currentParticipant.getFullyQualifiedType() !== 'ertis.uma.nuclear.Staff') {
+        throw new Error("Only staff members can execute transactions");
+    }
+    let participantId = getId(currentParticipant.getFullyQualifiedIdentifier());
+
+    try {
+        let staffRegistry = await getParticipantRegistry('ertis.uma.nuclear.Staff');
+        let staff = await staffRegistry.get(participantId);
+        if (!staff) throw new Error(`Participant with identifier ${participantId} does not exist.`);
+        if (staff.role !== 'AUTO') throw new Error("Staff must have role \'AUTO\' to execute this transaction");
+
+        let acqRegistry = await getAssetRegistry('ertis.uma.nuclear.Acquisition');
+        let acq = await acqRegistry.get(txData.acqId);
+        if (!acq) throw new Error(`Acquisition with identifier ${txData.acqId} does not exist`);
+
+        let analysisRegistry = await getAssetRegistry('ertis.uma.nuclear.Analysis');
+        let factory = getFactory();
+        let newAnalysis = factory.newResource('ertis.uma.nuclear', 'Analysis', txData.analysisId);
+        newAnalysis.analysisDate = new Date();
+        newAnalysis.method = 'AUTOMATIC';
+        newAnalysis.indications = automaticAnalysis(txData.acqData, acq.tube.length);
+        let rs_acq = factory.newRelationship('ertis.uma.nuclear', 'Acquisition', txData.acqData);
+        newAnalysis.acquisition = rs_acq;
+        let rs_staff = factory.newRelationship('ertis.uma.nuclear', 'Staff', participantId);
+        newAnalysis.analyst = rs_staff;
+
+        await analysisRegistry.add(newAnalysis);
+
+    } catch (e) {
+        console.log(e);
+    }
+
 }
 
 /**
@@ -549,7 +579,7 @@ async function existsAnalysis(acq_fqi, an_fqi) {
 function automaticAnalysis(data, tubeLength) {
     let total = 0;
     data.forEach((element) => {
-        total += element;
+        total += parseInt(element);
     });
     let n_indications = Math.round(total / data.length) % 4;
 
